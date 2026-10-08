@@ -80,7 +80,7 @@
       <div id="loading-bar-track">
         <div id="loading-bar-fill"></div>
       </div>
-      <div id="loading-phase">Initializing...</div>
+      <div id="loading-phase">Loading...</div>
       <button id="install-btn" hidden></button>
     </div>
 
@@ -118,13 +118,12 @@
         const overlay = document.getElementById("loading-overlay");
         const barFill = document.getElementById("loading-bar-fill");
         const phaseEl = document.getElementById("loading-phase");
-        function updateLoadingBar(pct, phase) {
+        function updateLoadingBar(pct) {
           barFill.style.width = pct + "%";
-          if (phase) phaseEl.textContent = phase;
         }
 
         function dismissOverlay() {
-          updateLoadingBar(100, "Let's go!");
+          updateLoadingBar(100);
           setTimeout(() => {
             overlay.classList.add("fade-out");
             overlay.addEventListener(
@@ -307,25 +306,20 @@
               const total = parseInt(match[2], 10);
               const pct =
                 total > 0 ? Math.min(90, Math.round((loaded / total) * 90)) : 0;
-              updateLoadingBar(
-                pct,
-                `Downloading game data... ${Math.round(
-                  (loaded / total) * 100
-                )}%`
-              );
+              updateLoadingBar(pct);
             } else if (text.includes("complete")) {
-              updateLoadingBar(92, "Compiling engine...");
+              updateLoadingBar(92);
             }
           },
           monitorRunDependencies: (left) => {
             if (left === 0) {
               log("all dependencies ready");
-              updateLoadingBar(95, "Resolving dependencies...");
+              updateLoadingBar(95);
             }
           },
           onRuntimeInitialized: () => {
             log("onRuntimeInitialized");
-            updateLoadingBar(98, "Starting game...");
+            updateLoadingBar(98);
             setTimeout(dismissOverlay, 500);
             canvas.focus();
 
@@ -446,7 +440,7 @@
             const verb = stored ? "Update" : cache ? "Install" : "Download";
             installBtn.textContent = `${verb} game data${mb}`;
             installBtn.hidden = false;
-            updateLoadingBar(0, "Game data is not installed.");
+            updateLoadingBar(0);
             await new Promise((resolve) => {
               installBtn.onclick = () => {
                 if (navigator.storage && navigator.storage.persist) {
@@ -470,10 +464,7 @@
           for (let i = 0; i < m.parts; i++) {
             blobs.push(await getPart(cache, partUrl(m, i)));
             const frac = (i + 1) / m.parts;
-            updateLoadingBar(
-              Math.round(frac * 90),
-              `Loading game data... ${Math.round(frac * 100)}%`
-            );
+            updateLoadingBar(Math.round(frac * 90));
           }
 
           const total = blobs.reduce((n, b) => n + b.size, 0);
@@ -510,7 +501,7 @@
           const wasm = fetchWasm(); // download while the user decides about Install
           wasm.catch(() => {}); // error is reported below when awaited
           dataBuffer = await loadData();
-          updateLoadingBar(90, "Downloading engine...");
+          updateLoadingBar(90);
           Module.wasmBinary = await wasm;
           await loadWesnothDataScript();
           await loadScript("wesnoth.js");
